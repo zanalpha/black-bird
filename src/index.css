@@ -178,19 +178,33 @@ html.dark[data-accent='hijau'] {
 }
 
 html {
-    font-size: 18px;
-}
-
-html[data-text='sm'] {
     font-size: 16px;
 }
 
+html[data-text='sm'] {
+    font-size: 15px;
+}
+
 html[data-text='md'] {
-    font-size: 18px;
+    font-size: 16px;
 }
 
 html[data-text='lg'] {
-    font-size: 20px;
+    font-size: 17.5px;
+}
+
+@media (min-width: 1024px) {
+    html[data-text='sm'] {
+        font-size: 16px;
+    }
+
+    html[data-text='md'] {
+        font-size: 18px;
+    }
+
+    html[data-text='lg'] {
+        font-size: 20px;
+    }
 }
 
 @layer base {
@@ -207,6 +221,7 @@ html[data-text='lg'] {
 
 body {
   min-height: 100dvh;
+  overflow-x: clip;
   background:
     radial-gradient(1000px 280px at 50% -12%, color-mix(in srgb, var(--foreground) 6%, transparent), transparent 58%),
     var(--background);

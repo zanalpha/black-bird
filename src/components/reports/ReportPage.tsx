@@ -6,7 +6,7 @@ import { StatCard } from '@/components/ledger/StatCard'
 import { TransactionList } from '@/components/ledger/TransactionList'
 import { Button } from '@/components/ui/button'
 import { useFinance } from '@/context/FinanceContext'
-import { usePreferences } from '@/context/PreferencesContext'
+import { useAdaptiveView } from '@/lib/viewport'
 import { downloadCsv } from '@/lib/csv'
 import { currentMonthKey, formatMonthLabel } from '@/lib/dates'
 import { byCategory, totals, transactionsInMonth } from '@/lib/finance'
@@ -14,7 +14,7 @@ import { formatRupiah } from '@/lib/money'
 
 export function ReportPage() {
   const { transactions } = useFinance()
-  const { preferences } = usePreferences()
+  const view = useAdaptiveView()
   const [month, setMonth] = useState(currentMonthKey)
   const monthItems = transactionsInMonth(transactions, month)
   const summary = totals(monthItems)
@@ -114,7 +114,7 @@ export function ReportPage() {
         </div>
         <TransactionList
           items={monthItems}
-          view={preferences.view}
+          view={view}
           empty={
             <p className="rounded-2xl bg-card px-4 py-10 text-center text-sm text-muted-foreground ring-1 ring-foreground/10">
               Belum ada transaksi di {formatMonthLabel(month)}.

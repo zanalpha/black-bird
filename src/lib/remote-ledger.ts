@@ -2,7 +2,7 @@ import { isTransaction } from '@/lib/finance'
 import { isTombstone, mergeLedger, type LedgerBook } from '@/lib/ledger-sync'
 
 export const LEDGER_ROOT =
-  'https://crudcrud.com/api/fc9fc5bd75c941019e84428054d5285a'
+  'https://crudcrud.com/api/5aff00489fd646d3bf96b789e618be2d'
 
 export type RemoteLedger = LedgerBook & {
   ids: string[]

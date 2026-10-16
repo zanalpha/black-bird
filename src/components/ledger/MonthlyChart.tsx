@@ -43,11 +43,11 @@ export function MonthlyChart({
           Belum ada transaksi pada tahun {year}.
         </p>
       ) : (
-        <div className="mt-6 overflow-x-auto pb-1">
+        <div className="mt-6">
           <div
             role="group"
             aria-label={`Grafik tahun ${year}`}
-            className="grid h-56 min-w-[40rem] grid-cols-12 gap-1"
+            className="grid h-44 min-w-0 grid-cols-12 gap-0.5 sm:h-56 sm:gap-1"
           >
             {points.map((point, index) => {
               const active = point.key === month
@@ -63,11 +63,11 @@ export function MonthlyChart({
                     active ? 'bg-muted' : 'hover:bg-muted/70',
                   )}
                 >
-                  <span className="flex h-36 w-full items-end justify-center gap-1">
+                  <span className="flex h-28 w-full items-end justify-center gap-0.5 sm:h-36 sm:gap-1">
                     <Bar value={point.income} max={max} className="bg-primary" />
                     <Bar value={point.expense} max={max} className="bg-expense" />
                   </span>
-                  <span className="text-[0.7rem] text-muted-foreground">
+                  <span className="text-[0.65rem] leading-none text-muted-foreground sm:text-xs">
                     {point.label}
                   </span>
                 </button>
@@ -93,11 +93,11 @@ function Bar({
   max: number
   className: string
 }) {
-  const height = value <= 0 ? 0 : Math.max(4, Math.round((value / max) * 144))
+  const height = value <= 0 ? '0%' : `${Math.max(8, Math.round((value / max) * 100))}%`
   return (
     <span
       aria-hidden="true"
-      className={cn('w-2 rounded-sm sm:w-3', className)}
+      className={cn('w-1 rounded-sm sm:w-2.5', className)}
       style={{ height }}
     />
   )

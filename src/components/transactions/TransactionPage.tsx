@@ -17,6 +17,7 @@ import {
 import { useFinance } from '@/context/FinanceContext'
 import { useLedgerUi } from '@/context/LedgerUiContext'
 import { usePreferences } from '@/context/PreferencesContext'
+import { useAdaptiveView } from '@/lib/viewport'
 import { downloadCsv } from '@/lib/csv'
 import {
   EMPTY_FILTER,
@@ -30,6 +31,7 @@ import type { TransactionFilter, TransactionView } from '@/types/finance'
 export function TransactionPage() {
   const { transactions } = useFinance()
   const { preferences, setView } = usePreferences()
+  const view = useAdaptiveView()
   const { openCreate } = useLedgerUi()
   const [filter, setFilter] = useState<TransactionFilter>(EMPTY_FILTER)
   const invalidRange = hasInvalidDateRange(filter)
@@ -64,7 +66,7 @@ export function TransactionPage() {
           </p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="sm:w-56">
+          <div className="hidden lg:block lg:w-56">
             <SegmentedControl<TransactionView>
               label="Tampilan transaksi"
               value={preferences.view}
@@ -221,7 +223,7 @@ export function TransactionPage() {
       ) : (
         <TransactionList
           items={visible}
-          view={preferences.view}
+          view={view}
           empty={
             <p className="rounded-2xl bg-card px-4 py-10 text-center text-sm text-muted-foreground ring-1 ring-foreground/10">
               {invalidRange

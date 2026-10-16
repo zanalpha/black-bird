@@ -39,7 +39,7 @@ export function MonthSwitcher({
         onChange={(event) => {
           if (event.target.value) onChange(event.target.value)
         }}
-        className="h-9 rounded-lg border border-input bg-transparent px-3 text-sm font-medium tabular-nums outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        className="h-10 w-[9.25rem] max-w-full rounded-lg border border-input bg-transparent px-2 text-sm font-medium tabular-nums outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
       />
       <Button
         type="button"

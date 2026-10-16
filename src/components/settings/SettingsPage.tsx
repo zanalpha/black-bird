@@ -116,7 +116,7 @@ export function SettingsPage() {
         <div>
           <h2 className="text-base font-semibold">Tampilan transaksi</h2>
           <p className="text-sm text-muted-foreground">
-            Tabel nyaman di layar lebar. Kartu lebih mudah dibaca di HP.
+            Ponsel dan tablet memakai kartu. Di layar lebar, pilihan ini menentukan tabel atau kartu.
           </p>
         </div>
         <SegmentedControl<TransactionView>

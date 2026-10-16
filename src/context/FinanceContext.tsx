@@ -174,7 +174,6 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     scheduleSync()
-    const timer = window.setInterval(scheduleSync, 20000)
     const onFocus = () => scheduleSync()
     const onVisible = () => {
       if (document.visibilityState === 'visible') scheduleSync()
@@ -183,7 +182,6 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
     window.addEventListener('online', onFocus)
     document.addEventListener('visibilitychange', onVisible)
     return () => {
-      window.clearInterval(timer)
       window.removeEventListener('focus', onFocus)
       window.removeEventListener('online', onFocus)
       document.removeEventListener('visibilitychange', onVisible)

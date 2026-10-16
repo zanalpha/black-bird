@@ -35,7 +35,7 @@ function CardList({ items }: { items: Transaction[] }) {
             <Badge variant={tx.type === 'pemasukan' ? 'default' : 'secondary'}>
               {typeLabel(tx.type)}
             </Badge>
-            <p className="text-right text-base font-semibold tabular-nums">
+            <p className="shrink-0 text-right text-sm font-semibold tabular-nums sm:text-base">
               {formatSignedRupiah(tx.type, tx.amount)}
             </p>
           </div>

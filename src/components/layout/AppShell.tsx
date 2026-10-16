@@ -70,11 +70,11 @@ function Shell() {
   }, [page])
 
   return (
-    <div className="min-h-dvh md:grid md:grid-cols-[15.5rem_minmax(0,1fr)]">
+    <div className="min-h-dvh lg:grid lg:grid-cols-[15.5rem_minmax(0,1fr)]">
       <a href="#konten" className="skip-link">
         Langsung ke isi
       </a>
-      <aside className="sticky top-0 hidden h-dvh flex-col border-r border-border bg-sidebar md:flex">
+      <aside className="sticky top-0 hidden h-dvh flex-col border-r border-border bg-sidebar lg:flex">
         <div className="flex items-center gap-3 px-4 py-5">
           <BirdMark />
           <div>
@@ -114,7 +114,7 @@ function Shell() {
       </aside>
 
       <div className="min-w-0">
-        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-border bg-background/90 px-4 py-3 backdrop-blur md:hidden">
+        <header className="sticky top-0 z-40 flex items-center justify-between gap-3 border-b border-border bg-background/95 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 backdrop-blur lg:hidden">
           <div className="flex min-w-0 items-center gap-2">
             <BirdMark />
             <span className="truncate font-semibold">Black Bird</span>
@@ -135,9 +135,9 @@ function Shell() {
             >
               {preferences.theme === 'dark' ? <Sun /> : <Moon />}
             </Button>
-            <Button type="button" className="h-10" onClick={openCreate}>
+            <Button type="button" className="h-10 px-3" onClick={openCreate}>
               <Plus />
-              Catat
+              <span className="max-[380px]:sr-only">Catat</span>
             </Button>
           </div>
         </header>
@@ -145,7 +145,7 @@ function Shell() {
         <main
           id="konten"
           tabIndex={-1}
-          className="mx-auto w-full max-w-6xl px-4 py-6 pb-28 outline-none md:px-8 md:py-8 md:pb-10"
+          className="mx-auto w-full max-w-6xl px-4 py-5 pb-[calc(5.5rem+env(safe-area-inset-bottom))] outline-none sm:py-6 lg:px-8 lg:py-8 lg:pb-10"
         >
           {saveError ? (
             <div
@@ -207,7 +207,7 @@ function Shell() {
       </div>
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-border bg-background/95 pb-[max(0.35rem,env(safe-area-inset-bottom))] backdrop-blur md:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-border bg-background/95 pb-[max(0.35rem,env(safe-area-inset-bottom))] backdrop-blur lg:hidden"
         aria-label="Utama"
       >
         {NAV.map((item) => (

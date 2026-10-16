@@ -5,7 +5,7 @@ import { MonthSwitcher } from '@/components/ledger/MonthSwitcher'
 import { StatCard } from '@/components/ledger/StatCard'
 import { TransactionList } from '@/components/ledger/TransactionList'
 import { useLedgerUi } from '@/context/LedgerUiContext'
-import { usePreferences } from '@/context/PreferencesContext'
+import { useAdaptiveView } from '@/lib/viewport'
 import { useFinance } from '@/context/FinanceContext'
 import {
   currentMonthKey,
@@ -21,7 +21,7 @@ function countLabel(count: number) {
 
 export function DashboardPage() {
   const { transactions } = useFinance()
-  const { preferences } = usePreferences()
+  const view = useAdaptiveView()
   const { openCreate } = useLedgerUi()
   const [month, setMonth] = useState(currentMonthKey)
   const monthItems = transactionsInMonth(transactions, month)
@@ -108,7 +108,7 @@ export function DashboardPage() {
             </div>
             <TransactionList
               items={recent}
-              view={preferences.view}
+              view={view}
               empty={
                 <p className="rounded-2xl bg-card px-4 py-8 text-center text-sm text-muted-foreground ring-1 ring-foreground/10">
                   Belum ada transaksi di {formatMonthLabel(month)}.
