@@ -14,23 +14,9 @@ import type {
 } from '@/types/finance'
 
 export const INCOME_CATEGORIES = [
-  'Gaji',
-  'Bonus',
-  'Usaha',
-  'Investasi',
-  'Hadiah',
-  'Lainnya',
-] as const
-
-export const EXPENSE_CATEGORIES = [
-  'Makanan',
-  'Transport',
-  'Tagihan',
-  'Belanja',
-  'Hiburan',
-  'Kesehatan',
-  'Pendidikan',
-  'Lainnya',
+  'Pembayaran Grub',
+  'Kas Tambahan',
+  'Dana Lainnya',
 ] as const
 
 export const EMPTY_FILTER: TransactionFilter = {
@@ -39,10 +25,6 @@ export const EMPTY_FILTER: TransactionFilter = {
   category: 'semua',
   from: '',
   to: '',
-}
-
-export function categoriesFor(type: TxType) {
-  return type === 'pemasukan' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES
 }
 
 export function typeLabel(type: TxType) {

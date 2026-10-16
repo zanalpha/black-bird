@@ -14,7 +14,6 @@ import {
   Select,
   SelectContent,
   SelectItem,
-  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
@@ -22,11 +21,9 @@ import { Textarea } from '@/components/ui/textarea'
 import { SegmentedControl } from '@/components/ledger/SegmentedControl'
 import { useFinance } from '@/context/FinanceContext'
 import { todayISO } from '@/lib/dates'
-import { categoriesFor, validateDraft } from '@/lib/finance'
+import { INCOME_CATEGORIES, validateDraft } from '@/lib/finance'
 import { formatThousands, sanitizeAmount } from '@/lib/money'
 import type { FieldErrors, Transaction, TxType } from '@/types/finance'
-
-const CUSTOM = '__custom'
 
 type FormState = {
   type: TxType
@@ -50,20 +47,19 @@ function emptyForm(): FormState {
 
 function toForm(transaction: Transaction | null): FormState {
   if (!transaction) return emptyForm()
-  const presets = categoriesFor(transaction.type)
-  const isPreset = (presets as readonly string[]).includes(transaction.category)
+  const income = transaction.type === 'pemasukan'
   return {
     type: transaction.type,
     amount: String(transaction.amount),
     date: transaction.date,
-    category: isPreset ? transaction.category : CUSTOM,
-    customCategory: isPreset ? '' : transaction.category,
+    category: income ? transaction.category : '',
+    customCategory: income ? '' : transaction.category,
     note: transaction.note,
   }
 }
 
 function resolvedCategory(form: FormState) {
-  return form.category === CUSTOM ? form.customCategory : form.category
+  return form.type === 'pengeluaran' ? form.customCategory : form.category
 }
 
 export function TransactionDialog({
@@ -126,7 +122,7 @@ export function TransactionDialog({
         : result.errors.date
           ? dateId
           : result.errors.category
-            ? form.category === CUSTOM
+            ? form.type === 'pengeluaran'
               ? customId
               : categoryId
             : result.errors.note
@@ -146,8 +142,13 @@ export function TransactionDialog({
     onOpenChange(false)
   }
 
-  const categoryErrorOnCustom = form.category === CUSTOM
-  const presets = categoriesFor(form.type)
+  const incomeCategories = (
+    form.type === 'pemasukan' &&
+    form.category !== '' &&
+    !(INCOME_CATEGORIES as readonly string[]).includes(form.category)
+      ? [form.category, ...INCOME_CATEGORIES]
+      : [...INCOME_CATEGORIES]
+  )
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -225,58 +226,44 @@ export function TransactionDialog({
             ) : null}
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor={categoryId}>Kategori</Label>
-            <Select
-              value={form.category || undefined}
-              onValueChange={(category) =>
-                commit({
-                  ...form,
-                  category,
-                  customCategory: category === CUSTOM ? form.customCategory : '',
-                })
-              }
-            >
-              <SelectTrigger
-                id={categoryId}
-                aria-invalid={
-                  Boolean(errors.category && !categoryErrorOnCustom) || undefined
-                }
-                aria-describedby={
-                  errors.category && !categoryErrorOnCustom
-                    ? `${categoryId}-error`
-                    : undefined
-                }
-                className="h-11 w-full"
-              >
-                <SelectValue placeholder="Pilih kategori" />
-              </SelectTrigger>
-              <SelectContent position="popper" className="max-h-72">
-                {presets.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-                <SelectSeparator />
-                <SelectItem value={CUSTOM}>Kategori sendiri</SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.category && !categoryErrorOnCustom ? (
-              <p id={`${categoryId}-error`} role="alert" className="text-sm text-destructive">
-                {errors.category}
-              </p>
-            ) : null}
-          </div>
-
-          {form.category === CUSTOM ? (
+          {form.type === 'pemasukan' ? (
             <div className="grid gap-2">
-              <Label htmlFor={customId}>Nama kategori</Label>
+              <Label htmlFor={categoryId}>Kategori</Label>
+              <Select
+                value={form.category || undefined}
+                onValueChange={(category) => commit({ ...form, category })}
+              >
+                <SelectTrigger
+                  id={categoryId}
+                  aria-invalid={Boolean(errors.category) || undefined}
+                  aria-describedby={errors.category ? `${categoryId}-error` : undefined}
+                  className="h-11 w-full"
+                >
+                  <SelectValue placeholder="Pilih kategori" />
+                </SelectTrigger>
+                <SelectContent position="popper">
+                  {incomeCategories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.category ? (
+                <p id={`${categoryId}-error`} role="alert" className="text-sm text-destructive">
+                  {errors.category}
+                </p>
+              ) : null}
+            </div>
+          ) : (
+            <div className="grid gap-2">
+              <Label htmlFor={customId}>Kategori</Label>
               <Input
                 id={customId}
                 value={form.customCategory}
                 maxLength={40}
                 autoComplete="off"
-                placeholder="Contoh: Tabungan"
+                placeholder="Ketik kategori pengeluaran"
                 aria-invalid={Boolean(errors.category) || undefined}
                 aria-describedby={errors.category ? `${customId}-error` : undefined}
                 className="h-11"
@@ -288,9 +275,13 @@ export function TransactionDialog({
                 <p id={`${customId}-error`} role="alert" className="text-sm text-destructive">
                   {errors.category}
                 </p>
-              ) : null}
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Kategori pengeluaran diketik sendiri.
+                </p>
+              )}
             </div>
-          ) : null}
+          )}
 
           <div className="grid gap-2">
             <div className="flex items-center justify-between gap-3">
