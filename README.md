@@ -29,6 +29,10 @@ npm run lint
 
 Nominal memakai rupiah penuh tanpa sen. Penghapusan selalu minta konfirmasi.
 
+## Deploy ke Render
+
+Blueprint ada di `render.yaml`: situs statis, perintah build `npm ci && npm run build`, folder publik `dist`, Node 22. Buat Static Site atau Blueprint baru di Render dari repositori GitHub atau GitLab, lalu pakai file itu.
+
 ## Data
 
 Transaksi disimpan di `localStorage` peramban, kunci `blackbird.transactions.v1`. Preferensi tampilan memakai `blackbird.preferences.v1`. Tidak ada akun dan tidak ada server. Menghapus data situs pada browser juga menghapus buku kas.
