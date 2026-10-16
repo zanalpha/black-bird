@@ -1,5 +1,5 @@
 {
-  "name": "jadwal-kuliah-dzaky",
+  "name": "black-bird",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -13,7 +13,6 @@
     "@fontsource-variable/geist": "^5.3.0",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.4.0",
-    "jspdf": "^4.2.1",
     "lucide-react": "^1.48.0",
     "radix-ui": "^1.6.7",
     "react": "^19.2.8",

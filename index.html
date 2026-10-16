@@ -1,15 +1,32 @@
 <!doctype html>
-<html lang="id" class="dark">
+<html lang="id" class="dark" data-accent="hitam" data-text="md">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Jadwal kuliah pribadi Dzaky. Lihat jadwal hari ini, kelola praktikum, dan dapatkan pengingat sebelum kuliah."
+      content="Black Bird, buku kas pribadi untuk mencatat pemasukan dan pengeluaran dalam rupiah."
     />
-    <meta name="theme-color" content="#0b1220" />
-    <title>Jadwal Kuliah Dzaky</title>
+    <meta name="theme-color" content="#090909" />
+    <title>Black Bird</title>
+    <script>
+      ;(function () {
+        try {
+          var raw = localStorage.getItem('blackbird.preferences.v1')
+          var prefs = raw ? JSON.parse(raw) : {}
+          var theme = prefs.theme === 'light' ? 'light' : 'dark'
+          var accents = { hitam: 1, perak: 1, emas: 1, merah: 1, hijau: 1 }
+          var sizes = { sm: 1, md: 1, lg: 1 }
+          var root = document.documentElement
+          root.classList.toggle('dark', theme === 'dark')
+          root.dataset.accent = accents[prefs.accent] ? prefs.accent : 'hitam'
+          root.dataset.text = sizes[prefs.textSize] ? prefs.textSize : 'md'
+          var meta = document.querySelector('meta[name="theme-color"]')
+          if (meta) meta.setAttribute('content', theme === 'dark' ? '#090909' : '#f4f4f1')
+        } catch (error) {}
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

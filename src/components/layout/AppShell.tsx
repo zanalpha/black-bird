@@ -1,170 +1,243 @@
-import { useEffect, useMemo, useState } from 'react'
-import { toast } from 'sonner'
-import { useSchedule } from '@/context/ScheduleContext'
-import { UiProvider, type UiApi } from '@/context/UiContext'
-import type { PageId } from '@/types/schedule'
-import { Button } from '@/components/ui/button'
+import { useEffect, useState } from 'react'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Dashboard } from '@/components/dashboard/Dashboard'
-import { Navbar } from '@/components/layout/Navbar'
-import { Sidebar } from '@/components/layout/Sidebar'
-import { PraktikumPage } from '@/components/praktikum/PraktikumPage'
-import { NotificationPrompt } from '@/components/reminder/Notification'
-import { Reminder } from '@/components/reminder/Reminder'
-import { ScheduleDetail } from '@/components/schedule/ScheduleDetail'
-import { ScheduleForm } from '@/components/schedule/ScheduleForm'
-import { SchedulePage } from '@/components/schedule/SchedulePage'
+  ArrowLeftRight,
+  Bird,
+  LayoutDashboard,
+  Moon,
+  PieChart,
+  Plus,
+  Settings,
+  Sun,
+} from 'lucide-react'
+import { Toaster } from '@/components/ui/sonner'
+import { Button } from '@/components/ui/button'
+import { DashboardPage } from '@/components/dashboard/DashboardPage'
+import { ReportPage } from '@/components/reports/ReportPage'
 import { SettingsPage } from '@/components/settings/SettingsPage'
+import { TransactionPage } from '@/components/transactions/TransactionPage'
+import { LedgerUiProvider, useLedgerUi } from '@/context/LedgerUiContext'
+import { useFinance } from '@/context/FinanceContext'
+import { usePreferences } from '@/context/PreferencesContext'
+import { cn } from '@/lib/utils'
+
+type Page = 'dasbor' | 'transaksi' | 'laporan' | 'pengaturan'
+
+const NAV: { id: Page; href: string; label: string; icon: typeof Bird }[] = [
+  { id: 'dasbor', href: '#/', label: 'Dasbor', icon: LayoutDashboard },
+  { id: 'transaksi', href: '#/transaksi', label: 'Transaksi', icon: ArrowLeftRight },
+  { id: 'laporan', href: '#/laporan', label: 'Laporan', icon: PieChart },
+  { id: 'pengaturan', href: '#/pengaturan', label: 'Pengaturan', icon: Settings },
+]
+
+const TITLES: Record<Page, string> = {
+  dasbor: 'Dasbor',
+  transaksi: 'Transaksi',
+  laporan: 'Laporan',
+  pengaturan: 'Pengaturan',
+}
+
+function readPage(): Page {
+  const hash = window.location.hash
+  if (hash === '#/transaksi') return 'transaksi'
+  if (hash === '#/laporan') return 'laporan'
+  if (hash === '#/pengaturan') return 'pengaturan'
+  return 'dasbor'
+}
 
 export function AppShell() {
-  const { schedules, deleteSchedule } = useSchedule()
-  const [page, setPage] = useState<PageId>('dashboard')
-  const [formOpen, setFormOpen] = useState(false)
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [createMode, setCreateMode] = useState<'schedule' | 'praktikum'>('schedule')
-  const [detailId, setDetailId] = useState<string | null>(null)
-  const [deleteId, setDeleteId] = useState<string | null>(null)
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [page])
-
-  const editing = schedules.find((item) => item.id === editingId) ?? null
-  const detail = schedules.find((item) => item.id === detailId) ?? null
-  const deleting = schedules.find((item) => item.id === deleteId) ?? null
-
-  const api = useMemo<UiApi>(
-    () => ({
-      page,
-      setPage,
-      openCreate: (mode) => {
-        setCreateMode(mode)
-        setEditingId(null)
-        setFormOpen(true)
-      },
-      openEdit: (id) => {
-        setDetailId(null)
-        setEditingId(id)
-        setFormOpen(true)
-      },
-      openDetail: (id) => setDetailId(id),
-      requestDelete: (id) => {
-        setDetailId(null)
-        setDeleteId(id)
-      },
-    }),
-    [page],
-  )
-
   return (
-    <UiProvider value={api}>
-      <div className="min-h-screen lg:flex">
-        <Sidebar />
-        <div className="min-w-0 flex-1">
-          <main className="mx-auto w-full max-w-6xl px-4 pt-5 pb-28 sm:px-6 lg:px-8 lg:pt-8 lg:pb-10">
-            <NotificationPrompt />
-            {page === 'dashboard' ? <Dashboard /> : null}
-            {page === 'schedule' ? <SchedulePage /> : null}
-            {page === 'add' ? <AddPage onDone={() => setPage('schedule')} onCancel={() => setPage('dashboard')} /> : null}
-            {page === 'praktikum' ? <PraktikumPage /> : null}
-            {page === 'settings' ? <SettingsPage /> : null}
-          </main>
-        </div>
-        <Navbar />
-      </div>
-      <Reminder />
-
-      <Dialog open={formOpen} onOpenChange={setFormOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {editing ? 'Edit Jadwal' : createMode === 'praktikum' ? 'Tambah Praktikum' : 'Tambah Jadwal'}
-            </DialogTitle>
-            <DialogDescription>
-              Perubahan langsung tersimpan di browser ini dan muncul di seluruh jadwal.
-            </DialogDescription>
-          </DialogHeader>
-          {formOpen ? (
-            <ScheduleForm
-              key={editing?.id ?? `new-${createMode}`}
-              initial={editing}
-              defaultType={createMode === 'praktikum' ? 'praktikum' : 'kuliah'}
-              onCancel={() => setFormOpen(false)}
-              onSaved={() => setFormOpen(false)}
-            />
-          ) : null}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={detail !== null} onOpenChange={(open) => !open && setDetailId(null)}>
-        <DialogContent>
-          <DialogHeader className="sr-only">
-            <DialogTitle>{detail?.name ?? 'Detail jadwal'}</DialogTitle>
-            <DialogDescription>Detail mata kuliah, ruangan, dan waktu.</DialogDescription>
-          </DialogHeader>
-          {detail ? (
-            <ScheduleDetail
-              schedule={detail}
-              onEdit={() => api.openEdit(detail.id)}
-              onDelete={() => api.requestDelete(detail.id)}
-            />
-          ) : null}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={deleting !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Apakah kamu yakin ingin menghapus jadwal ini?</DialogTitle>
-            <DialogDescription>
-              {deleting
-                ? `${deleting.name} (${deleting.startTime} - ${deleting.endTime}) akan dihapus dari jadwal mingguan.`
-                : 'Jadwal yang dihapus tidak bisa dikembalikan kecuali lewat cadangan.'}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setDeleteId(null)}>
-              Batal
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={() => {
-                if (!deleting) return
-                deleteSchedule(deleting.id)
-                setDeleteId(null)
-                toast.success('Jadwal dihapus.')
-              }}
-            >
-              Hapus
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </UiProvider>
+    <LedgerUiProvider>
+      <Shell />
+    </LedgerUiProvider>
   )
 }
 
-function AddPage({ onDone, onCancel }: { onDone: () => void; onCancel: () => void }) {
+function Shell() {
+  const [page, setPage] = useState<Page>(readPage)
+  const { saveError, notice, dismissNotice, retrySave } = useFinance()
+  const { preferences, setTheme } = usePreferences()
+  const { openCreate } = useLedgerUi()
+
+  useEffect(() => {
+    const onHash = () => setPage(readPage())
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [])
+
+  useEffect(() => {
+    document.title = `${TITLES[page]} · Black Bird`
+    window.scrollTo(0, 0)
+  }, [page])
+
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
-      <header>
-        <p className="text-xs font-medium tracking-[0.16em] text-blue-300/80 uppercase">Jadwal baru</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">Tambah Jadwal</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Isi mata kuliah, praktikum, ujian, atau kegiatan lain. Jadwal langsung muncul di kalender.
-        </p>
-      </header>
-      <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
-        <ScheduleForm defaultType="kuliah" onCancel={onCancel} onSaved={onDone} />
+    <div className="min-h-dvh md:grid md:grid-cols-[15.5rem_minmax(0,1fr)]">
+      <a href="#konten" className="skip-link">
+        Langsung ke isi
+      </a>
+      <aside className="sticky top-0 hidden h-dvh flex-col border-r border-border bg-sidebar md:flex">
+        <div className="flex items-center gap-3 px-4 py-5">
+          <BirdMark />
+          <div>
+            <p className="font-semibold tracking-tight">Black Bird</p>
+            <p className="text-xs text-muted-foreground">Buku kas pribadi</p>
+          </div>
+        </div>
+        <div className="px-3">
+          <Button type="button" className="h-10 w-full" onClick={openCreate}>
+            <Plus />
+            Catat transaksi
+          </Button>
+        </div>
+        <nav className="mt-4 grid gap-1 px-3" aria-label="Utama">
+          {NAV.map((item) => (
+            <NavLink key={item.id} item={item} active={page === item.id} />
+          ))}
+        </nav>
+        <div className="mt-auto grid gap-3 p-3">
+          <p className="px-2 text-xs text-muted-foreground">
+            Tersimpan otomatis di perangkat ini.
+          </p>
+          <Button
+            type="button"
+            variant="secondary"
+            className="h-10 w-full"
+            onClick={() =>
+              setTheme(preferences.theme === 'dark' ? 'light' : 'dark')
+            }
+          >
+            {preferences.theme === 'dark' ? <Sun /> : <Moon />}
+            {preferences.theme === 'dark' ? 'Tema terang' : 'Tema gelap'}
+          </Button>
+        </div>
+      </aside>
+
+      <div className="min-w-0">
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-border bg-background/90 px-4 py-3 backdrop-blur md:hidden">
+          <div className="flex min-w-0 items-center gap-2">
+            <BirdMark />
+            <span className="truncate font-semibold">Black Bird</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-lg"
+              aria-label={
+                preferences.theme === 'dark'
+                  ? 'Ganti ke tema terang'
+                  : 'Ganti ke tema gelap'
+              }
+              onClick={() =>
+                setTheme(preferences.theme === 'dark' ? 'light' : 'dark')
+              }
+            >
+              {preferences.theme === 'dark' ? <Sun /> : <Moon />}
+            </Button>
+            <Button type="button" className="h-10" onClick={openCreate}>
+              <Plus />
+              Catat
+            </Button>
+          </div>
+        </header>
+
+        <main
+          id="konten"
+          tabIndex={-1}
+          className="mx-auto w-full max-w-6xl px-4 py-6 pb-28 outline-none md:px-8 md:py-8 md:pb-10"
+        >
+          {saveError ? (
+            <div
+              role="alert"
+              className="mb-4 flex flex-col gap-3 rounded-2xl bg-destructive/10 px-4 py-3 text-sm text-destructive sm:flex-row sm:items-center sm:justify-between"
+            >
+              <p>{saveError}</p>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-10"
+                onClick={retrySave}
+              >
+                Coba simpan lagi
+              </Button>
+            </div>
+          ) : null}
+          {notice ? (
+            <div
+              role="status"
+              className="mb-4 flex items-start justify-between gap-3 rounded-2xl bg-muted px-4 py-3 text-sm"
+            >
+              <p>{notice}</p>
+              <Button type="button" variant="ghost" className="h-9" onClick={dismissNotice}>
+                Tutup
+              </Button>
+            </div>
+          ) : null}
+
+          <div className={page === 'dasbor' ? 'grid gap-6' : 'hidden'}>
+            <DashboardPage />
+          </div>
+          <div className={page === 'transaksi' ? undefined : 'hidden'}>
+            <TransactionPage />
+          </div>
+          <div className={page === 'laporan' ? undefined : 'hidden'}>
+            <ReportPage />
+          </div>
+          <div className={page === 'pengaturan' ? undefined : 'hidden'}>
+            <SettingsPage />
+          </div>
+        </main>
       </div>
+
+      <nav
+        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-border bg-background/95 pb-[max(0.35rem,env(safe-area-inset-bottom))] backdrop-blur md:hidden"
+        aria-label="Utama"
+      >
+        {NAV.map((item) => (
+          <NavLink key={item.id} item={item} active={page === item.id} compact />
+        ))}
+      </nav>
+      <Toaster theme={preferences.theme} position="top-center" />
     </div>
+  )
+}
+
+function NavLink({
+  item,
+  active,
+  compact = false,
+}: {
+  item: (typeof NAV)[number]
+  active: boolean
+  compact?: boolean
+}) {
+  const Icon = item.icon
+  return (
+    <a
+      href={item.href}
+      aria-current={active ? 'page' : undefined}
+      className={cn(
+        'font-medium transition-colors',
+        compact
+          ? 'flex flex-col items-center justify-center gap-1 px-1 py-2 text-center text-[0.7rem] leading-tight'
+          : 'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm',
+        active
+          ? compact
+            ? 'text-foreground shadow-[inset_0_2px_0_0_var(--primary)]'
+            : 'bg-primary text-primary-foreground'
+          : 'text-muted-foreground hover:text-foreground',
+        !compact && !active && 'hover:bg-muted',
+      )}
+    >
+      <Icon className={cn(compact ? 'size-5' : 'size-4', active && compact && 'text-primary')} />
+      {item.label}
+    </a>
+  )
+}
+
+function BirdMark() {
+  return (
+    <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-foreground text-background">
+      <Bird className="size-5" aria-hidden="true" />
+    </span>
   )
 }
