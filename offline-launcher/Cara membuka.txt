@@ -3,6 +3,6 @@ Black Bird — folder offline
 1. Ekstrak zip ini di PC.
 2. Klik dua kali "Buka Black Bird.bat".
 3. Browser terbuka sendiri. Jangan tutup jendela hitam selama Black Bird dipakai.
-4. Catatan uang tersimpan di browser PC ini. Internet tidak diperlukan.
+4. Tanpa internet, salinan terakhir di browser PC ini tetap bisa dipakai. Saat online, buku mengikuti tautan Black Bird yang sama.
 
 Menutup jendela hitam akan menghentikan halaman. Data yang sudah disimpan tetap ada saat dibuka lagi.

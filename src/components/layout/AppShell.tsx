@@ -54,7 +54,7 @@ export function AppShell() {
 
 function Shell() {
   const [page, setPage] = useState<Page>(readPage)
-  const { saveError, notice, dismissNotice, retrySave } = useFinance()
+  const { saveError, syncError, notice, dismissNotice, retrySave } = useFinance()
   const { preferences, setTheme } = usePreferences()
   const { openCreate } = useLedgerUi()
 
@@ -95,7 +95,9 @@ function Shell() {
         </nav>
         <div className="mt-auto grid gap-3 p-3">
           <p className="px-2 text-xs text-muted-foreground">
-            Tersimpan otomatis di perangkat ini.
+            {syncError
+              ? 'Perangkat lain belum mendapat perubahan terakhir.'
+              : 'Buku yang sama di setiap perangkat.'}
           </p>
           <Button
             type="button"
@@ -158,6 +160,22 @@ function Shell() {
                 onClick={retrySave}
               >
                 Coba simpan lagi
+              </Button>
+            </div>
+          ) : null}
+          {syncError ? (
+            <div
+              role="alert"
+              className="mb-4 flex flex-col gap-3 rounded-2xl bg-destructive/10 px-4 py-3 text-sm text-destructive sm:flex-row sm:items-center sm:justify-between"
+            >
+              <p>{syncError}</p>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-10"
+                onClick={retrySave}
+              >
+                Coba sambungkan lagi
               </Button>
             </div>
           ) : null}

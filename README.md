@@ -1,6 +1,6 @@
 # Black Bird
 
-Buku kas pribadi untuk mencatat pemasukan dan pengeluaran. Tampilannya hitam-putih, bisa disesuaikan, dan datanya tersimpan di browser.
+Buku kas pribadi untuk mencatat pemasukan dan pengeluaran. Tampilannya hitam-putih, bisa disesuaikan, dan buku yang sama terbuka di setiap perangkat yang memakai tautan ini.
 
 ## Menjalankan
 
@@ -35,4 +35,6 @@ Blueprint ada di `render.yaml`: situs statis, perintah build `npm ci && npm run 
 
 ## Data
 
-Transaksi disimpan di `localStorage` peramban, kunci `blackbird.transactions.v1`. Preferensi tampilan memakai `blackbird.preferences.v1`. Tidak ada akun dan tidak ada server. Menghapus data situs pada browser juga menghapus buku kas.
+Transaksi tersimpan di browser (`blackbird.transactions.v1`) dan disalin ke buku bersama, jadi perangkat lain yang membuka tautan yang sama melihat transaksi yang sama. Preferensi tampilan tetap di perangkat masing-masing, kunci `blackbird.preferences.v1`.
+
+Buka dulu tautan di perangkat yang sudah berisi catatan, supaya catatan itu terunggah. Setelah itu perangkat lain menampilkan buku yang sama. Siapa pun yang membuka tautan itu dapat melihat transaksi di dalamnya.

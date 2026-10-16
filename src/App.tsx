@@ -16,8 +16,24 @@ export default function App() {
 }
 
 function BookGate() {
-  const { loadError, replaceUnreadableData } = useFinance()
+  const { hydrated, loadError, transactions, replaceUnreadableData } = useFinance()
   const [confirm, setConfirm] = useState(false)
+
+  if (!loadError && !hydrated && transactions.length === 0) {
+    return (
+      <div className="grid min-h-dvh place-items-center px-6">
+        <div className="max-w-md text-center">
+          <Bird className="mx-auto size-8" aria-hidden="true" />
+          <h1 className="mt-4 text-2xl font-semibold tracking-tight">
+            Membuka buku kas
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Mengambil transaksi yang tersimpan di tautan ini.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   if (loadError) {
     return (

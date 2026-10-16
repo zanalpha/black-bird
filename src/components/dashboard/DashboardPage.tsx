@@ -46,7 +46,7 @@ export function DashboardPage() {
       {transactions.length === 0 ? (
         <EmptyState
           title="Buku kas masih kosong"
-          body="Catat pemasukan atau pengeluaran pertama. Data tersimpan otomatis di perangkat ini."
+          body="Catat pemasukan atau pengeluaran pertama. Setelah tersimpan, perangkat lain yang membuka tautan ini melihat buku yang sama."
           actionLabel="Catat transaksi"
           onAction={openCreate}
         />

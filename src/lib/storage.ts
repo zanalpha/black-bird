@@ -1,7 +1,9 @@
 import { compareTransactionsDesc, isTransaction } from '@/lib/finance'
+import { isTombstone, type Tombstone } from '@/lib/ledger-sync'
 import type { Transaction } from '@/types/finance'
 
 export const TX_KEY = 'blackbird.transactions.v1'
+export const DELETED_KEY = 'blackbird.deleted.v1'
 
 export type LoadResult =
   | { ok: true; transactions: Transaction[]; dropped: number }
@@ -32,6 +34,31 @@ export function loadTransactions(): LoadResult {
 export function saveTransactions(transactions: Transaction[]) {
   try {
     localStorage.setItem(TX_KEY, JSON.stringify(transactions))
+    return { ok: true as const }
+  } catch {
+    return {
+      ok: false as const,
+      message:
+        'Perubahan terakhir belum tersimpan. Ruang penyimpanan perangkat mungkin penuh atau diblokir.',
+    }
+  }
+}
+
+export function loadDeleted(): Tombstone[] {
+  try {
+    const raw = localStorage.getItem(DELETED_KEY)
+    if (!raw) return []
+    const parsed: unknown = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return []
+    return parsed.filter(isTombstone)
+  } catch {
+    return []
+  }
+}
+
+export function saveDeleted(items: Tombstone[]) {
+  try {
+    localStorage.setItem(DELETED_KEY, JSON.stringify(items))
     return { ok: true as const }
   } catch {
     return {

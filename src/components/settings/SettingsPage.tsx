@@ -150,7 +150,9 @@ export function SettingsPage() {
         <div>
           <h2 className="text-base font-semibold">Folder offline</h2>
           <p className="text-sm text-muted-foreground">
-            Unduh, lalu ekstrak di PC. Klik dua kali Buka Black Bird. Data tetap tersimpan di browser itu tanpa internet.
+            Unduh, lalu ekstrak di PC. Klik dua kali Buka Black Bird. Tanpa
+            internet, salinan terakhir di browser itu tetap bisa dipakai. Saat
+            online, buku mengikuti tautan yang sama.
           </p>
         </div>
         <div>
@@ -168,12 +170,14 @@ export function SettingsPage() {
 
       <section className="grid gap-4 rounded-2xl bg-card p-4 ring-1 ring-foreground/10 sm:p-5">
         <div>
-          <h2 className="text-base font-semibold">Data di perangkat</h2>
+          <h2 className="text-base font-semibold">Buku kas</h2>
           <p className="text-sm text-muted-foreground">
             {transactions.length === 0
-              ? 'Belum ada transaksi tersimpan.'
-              : `${transactions.length} transaksi tersimpan di browser ini.`}{' '}
-            Menghapus data situs pada browser juga menghapus buku kas ini.
+              ? 'Belum ada transaksi.'
+              : `${transactions.length} transaksi tersimpan untuk tautan ini.`}{' '}
+            HP dan laptop membaca buku yang sama. Menghapus data situs di satu
+            browser tidak menghapus buku di perangkat lain; buku itu kembali
+            saat halaman dibuka lagi.
           </p>
         </div>
         <div>
@@ -192,7 +196,7 @@ export function SettingsPage() {
       <ConfirmDialog
         open={confirmClear}
         title="Hapus semua transaksi?"
-        description={`${transactions.length} transaksi akan dihapus dari perangkat ini. Tindakan ini tidak bisa dibatalkan.`}
+        description={`${transactions.length} transaksi akan dihapus di semua perangkat. Tindakan ini tidak bisa dibatalkan.`}
         confirmLabel="Hapus semua"
         onOpenChange={setConfirmClear}
         onConfirm={() => {
