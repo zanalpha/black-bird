@@ -10,15 +10,8 @@ import {
 } from 'react'
 import { compareTransactionsDesc } from '@/lib/finance'
 import { addTombstone, mergeLedger, sameLedger, type Tombstone } from '@/lib/ledger-sync'
-import { fetchLedger, saveLedger } from '@/lib/remote-ledger'
-import {
-  createId,
-  loadDeleted,
-  loadTransactions,
-  saveDeleted,
-  saveTransactions,
-  type LoadResult,
-} from '@/lib/storage'
+import { fetchLedger, saveLedger, type RemoteLedger } from '@/lib/remote-ledger'
+import { createId } from '@/lib/storage'
 import type { Transaction, TransactionInput } from '@/types/finance'
 
 type FinanceContextValue = {
@@ -39,10 +32,9 @@ type FinanceContextValue = {
 
 const FinanceContext = createContext<FinanceContextValue | null>(null)
 
-const syncFailed =
-  'Buku kas belum tersambung ke perangkat lain. Data di perangkat ini tetap ada.'
-const syncOffline =
-  'Tidak ada internet. Data di perangkat ini tetap ada dan akan menyambung saat online.'
+const syncFailed = 'Buku kas belum tersambung ke perangkat lain.'
+const syncOffline = 'Tidak ada internet. Buku bersama belum bisa dibuka.'
+const unreadable = 'Buku kas bersama tidak bisa dibaca.'
 
 let syncChain: Promise<void> = Promise.resolve()
 
@@ -51,86 +43,68 @@ function enqueueSync(task: () => Promise<void>) {
   return syncChain
 }
 
-function droppedNotice(count: number) {
-  if (count <= 0) return null
-  return count === 1
-    ? '1 transaksi rusak dilewati dan tidak dimuat.'
-    : `${count} transaksi rusak dilewati dan tidak dimuat.`
-}
-
-function bootLedger(): LoadResult {
-  const result = loadTransactions()
-  if (result.ok && result.dropped > 0) saveTransactions(result.transactions)
-  return result
-}
-
-function storageMessage(txOk: boolean, deletedOk: boolean, txMessage?: string, deletedMessage?: string) {
-  if (txOk && deletedOk) return null
-  return txMessage ?? deletedMessage ?? syncFailed
-}
-
 export function FinanceProvider({ children }: { children: ReactNode }) {
-  const [boot] = useState(bootLedger)
-  const allowSave = useRef(boot.ok)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [syncError, setSyncError] = useState<string | null>(null)
   const [hydrated, setHydrated] = useState(false)
-  const [notice, setNotice] = useState<string | null>(
-    boot.ok ? droppedNotice(boot.dropped) : null,
-  )
-  const [transactions, setTransactions] = useState<Transaction[]>(
-    boot.ok ? boot.transactions : [],
-  )
+  const [notice, setNotice] = useState<string | null>(null)
+  const [transactions, setTransactions] = useState<Transaction[]>([])
   const transactionsRef = useRef(transactions)
-  const deletedRef = useRef<Tombstone[]>(loadDeleted())
+  const deletedRef = useRef<Tombstone[]>([])
+  const shaRef = useRef<string | null>(null)
   const revision = useRef(0)
-  const bootRef = useRef(boot)
 
-  const persist = useCallback((next: Transaction[], deleted: Tombstone[]) => {
-    transactionsRef.current = next
-    deletedRef.current = deleted
-    setTransactions(next)
-    if (!allowSave.current) return
-    const savedTx = saveTransactions(next)
-    const savedDeleted = saveDeleted(deleted)
-    setSaveError(
-      storageMessage(
-        savedTx.ok,
-        savedDeleted.ok,
-        savedTx.ok ? undefined : savedTx.message,
-        savedDeleted.ok ? undefined : savedDeleted.message,
-      ),
-    )
+  const apply = useCallback((book: { transactions: Transaction[]; deleted: Tombstone[] }) => {
+    transactionsRef.current = book.transactions
+    deletedRef.current = book.deleted
+    setTransactions(book.transactions)
   }, [])
+
+  const pushBook = useCallback(
+    async (book: { transactions: Transaction[]; deleted: Tombstone[] }) => {
+      try {
+        const sha = await saveLedger(book, shaRef.current)
+        shaRef.current = sha
+        return true
+      } catch (error) {
+        if (error instanceof Error && error.message === 'conflict') {
+          const remote = await fetchLedger()
+          shaRef.current = remote.sha
+          const merged = mergeLedger(
+            book.transactions,
+            book.deleted,
+            remote.transactions,
+            remote.deleted,
+          )
+          const sha = await saveLedger(merged, remote.sha)
+          shaRef.current = sha
+          apply(merged)
+          return true
+        }
+        throw error
+      }
+    },
+    [apply],
+  )
 
   const sync = useCallback(async () => {
     const mark = revision.current
-    let remote: Awaited<ReturnType<typeof fetchLedger>>
+    let remote: RemoteLedger
     try {
       remote = await fetchLedger()
-    } catch {
+    } catch (error) {
       if (mark !== revision.current) return
-      if (!allowSave.current) {
-        setLoadError(bootRef.current.ok ? null : bootRef.current.message)
-      }
-      setSyncError(navigator.onLine ? syncFailed : syncOffline)
+      const offline = typeof navigator !== 'undefined' && navigator.onLine === false
+      if (error instanceof Error && error.message === unreadable) setLoadError(unreadable)
+      setSyncError(offline ? syncOffline : syncFailed)
       setHydrated(true)
       return
     }
 
     if (mark !== revision.current) return
-
-    if (!allowSave.current) {
-      if (remote.transactions.length === 0 && remote.ids.length === 0) {
-        setLoadError(bootRef.current.ok ? null : bootRef.current.message)
-        setHydrated(true)
-        return
-      }
-      allowSave.current = true
-      setLoadError(null)
-      setNotice(null)
-    }
+    shaRef.current = remote.sha
+    setLoadError(null)
 
     const merged = mergeLedger(
       transactionsRef.current,
@@ -140,23 +114,25 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
     )
     if (mark !== revision.current) return
 
-    const localChanged = !sameLedger(
-      { transactions: transactionsRef.current, deleted: deletedRef.current },
-      merged,
-    )
-    if (localChanged) persist(merged.transactions, merged.deleted)
+    if (
+      !sameLedger(
+        { transactions: transactionsRef.current, deleted: deletedRef.current },
+        merged,
+      )
+    ) {
+      apply(merged)
+    }
 
-    const remoteChanged =
-      !sameLedger(remote, merged) || remote.ids.length > 1
-    const shouldPush =
+    const remoteChanged = !sameLedger(remote, merged)
+    if (
       remoteChanged &&
       (merged.transactions.length > 0 ||
         merged.deleted.length > 0 ||
-        remote.ids.length > 0)
-
-    if (shouldPush) {
+        remote.transactions.length > 0 ||
+        remote.deleted.length > 0)
+    ) {
       try {
-        await saveLedger(remote.ids, merged)
+        await pushBook(merged)
       } catch {
         if (mark === revision.current) setSyncError(syncFailed)
         setHydrated(true)
@@ -164,9 +140,12 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    if (mark === revision.current) setSyncError(null)
+    if (mark === revision.current) {
+      setSyncError(null)
+      setSaveError(null)
+    }
     setHydrated(true)
-  }, [persist])
+  }, [apply, pushBook])
 
   const scheduleSync = useCallback(() => {
     void enqueueSync(sync)
@@ -178,10 +157,14 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
     const onVisible = () => {
       if (document.visibilityState === 'visible') scheduleSync()
     }
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === 'visible') scheduleSync()
+    }, 12_000)
     window.addEventListener('focus', onFocus)
     window.addEventListener('online', onFocus)
     document.addEventListener('visibilitychange', onVisible)
     return () => {
+      window.clearInterval(timer)
       window.removeEventListener('focus', onFocus)
       window.removeEventListener('online', onFocus)
       document.removeEventListener('visibilitychange', onVisible)
@@ -191,10 +174,10 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
   const write = useCallback(
     (next: Transaction[], deleted: Tombstone[]) => {
       revision.current += 1
-      persist(next, deleted)
-      if (allowSave.current) scheduleSync()
+      apply({ transactions: next, deleted })
+      scheduleSync()
     },
-    [persist, scheduleSync],
+    [apply, scheduleSync],
   )
 
   const addTransaction = useCallback(
@@ -252,7 +235,6 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
   }, [write])
 
   const replaceUnreadableData = useCallback(() => {
-    allowSave.current = true
     setLoadError(null)
     setNotice(null)
     write([], [])
@@ -263,18 +245,6 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const retrySave = useCallback(() => {
-    if (allowSave.current) {
-      const savedTx = saveTransactions(transactionsRef.current)
-      const savedDeleted = saveDeleted(deletedRef.current)
-      setSaveError(
-        storageMessage(
-          savedTx.ok,
-          savedDeleted.ok,
-          savedTx.ok ? undefined : savedTx.message,
-          savedDeleted.ok ? undefined : savedDeleted.message,
-        ),
-      )
-    }
     scheduleSync()
   }, [scheduleSync])
 
@@ -311,9 +281,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
     ],
   )
 
-  return (
-    <FinanceContext.Provider value={value}>{children}</FinanceContext.Provider>
-  )
+  return <FinanceContext.Provider value={value}>{children}</FinanceContext.Provider>
 }
 
 export function useFinance() {

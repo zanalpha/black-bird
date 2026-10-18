@@ -1,5 +1,4 @@
 import { mergeLedger, sameLedger, type Tombstone } from '../src/lib/ledger-sync.ts'
-import { fetchLedger, saveLedger } from '../src/lib/remote-ledger.ts'
 import type { Transaction } from '../src/types/finance.ts'
 
 function tx(partial: Partial<Transaction> & Pick<Transaction, 'id' | 'updatedAt'>): Transaction {
@@ -68,41 +67,17 @@ assert(
 const emptyDevice = mergeLedger([], [], [remoteOnly], [])
 assert(emptyDevice.transactions[0]?.id === 'b', 'empty device receives the shared book')
 
-async function roundTrip() {
-  const created = await fetch('https://crudcrud.com/api', { method: 'POST' })
-  if (!created.ok) throw new Error(`endpoint ${created.status}`)
-  const root = `https://crudcrud.com/api/${(await created.text()).trim()}`
-  const first = tx({
-    id: 'grub',
-    category: 'Pembayaran Grub',
-    note: 'dari laptop',
-    amount: 1500000,
-    updatedAt: '2026-10-16T08:00:00.000Z',
-  })
-  await saveLedger([], { transactions: [first], deleted: [] }, root)
-  const pulled = await fetchLedger(root)
-  assert(pulled.transactions.length === 1, 'second device reads the upload')
-  assert(pulled.transactions[0]?.note === 'dari laptop', 'note survives the round trip')
-  assert(pulled.ids.length === 1, 'remote id is stored')
-
-  const extra = tx({
-    id: 'kas',
-    category: 'Dana Lainnya',
-    amount: 25000,
-    updatedAt: '2026-10-16T09:00:00.000Z',
-  })
-  const merged = mergeLedger(
-    [extra],
-    [{ id: 'grub', at: '2026-10-16T10:00:00.000Z' }],
-    pulled.transactions,
-    pulled.deleted,
-  )
-  assert(merged.transactions.length === 1 && merged.transactions[0]?.id === 'kas', 'delete and add merge')
-  await saveLedger(pulled.ids, merged, root)
-  const again = await fetchLedger(root)
-  assert(again.transactions.length === 1 && again.transactions[0]?.id === 'kas', 'shared book keeps the merge')
-  assert(again.deleted.some((item) => item.id === 'grub'), 'delete is shared')
-  console.log('ledger sync ok', root)
-}
-
-await roundTrip()
+const extra = tx({
+  id: 'kas',
+  category: 'Dana Lainnya',
+  amount: 25000,
+  updatedAt: '2026-10-16T09:00:00.000Z',
+})
+const shared = mergeLedger(
+  [extra],
+  [{ id: 'a', at: '2026-10-16T10:00:00.000Z' }],
+  [local],
+  [],
+)
+assert(shared.transactions.length === 1 && shared.transactions[0]?.id === 'kas', 'delete and add merge')
+console.log('ledger sync ok')

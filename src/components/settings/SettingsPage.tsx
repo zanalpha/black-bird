@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Download, LayoutGrid, Moon, Sun, Table } from 'lucide-react'
+import { LayoutGrid, Moon, Sun, Table } from 'lucide-react'
 import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/ledger/ConfirmDialog'
 import { SegmentedControl } from '@/components/ledger/SegmentedControl'
@@ -148,36 +148,13 @@ export function SettingsPage() {
 
       <section className="grid gap-4 rounded-2xl bg-card p-4 ring-1 ring-foreground/10 sm:p-5">
         <div>
-          <h2 className="text-base font-semibold">Folder offline</h2>
-          <p className="text-sm text-muted-foreground">
-            Unduh, lalu ekstrak di PC. Klik dua kali Buka Black Bird. Tanpa
-            internet, salinan terakhir di browser itu tetap bisa dipakai. Saat
-            online, buku mengikuti tautan yang sama.
-          </p>
-        </div>
-        <div>
-          <Button asChild className="h-10">
-            <a
-              href={`${import.meta.env.BASE_URL}Black-Bird-Offline.zip`}
-              download="Black-Bird-Offline.zip"
-            >
-              <Download />
-              Unduh folder offline
-            </a>
-          </Button>
-        </div>
-      </section>
-
-      <section className="grid gap-4 rounded-2xl bg-card p-4 ring-1 ring-foreground/10 sm:p-5">
-        <div>
           <h2 className="text-base font-semibold">Buku kas</h2>
           <p className="text-sm text-muted-foreground">
             {transactions.length === 0
               ? 'Belum ada transaksi.'
               : `${transactions.length} transaksi tersimpan untuk tautan ini.`}{' '}
-            HP dan laptop membaca buku yang sama. Menghapus data situs di satu
-            browser tidak menghapus buku di perangkat lain; buku itu kembali
-            saat halaman dibuka lagi.
+            HP dan laptop membaca buku yang sama. Catatan tidak disimpan
+            terpisah di tiap perangkat.
           </p>
         </div>
         <div>

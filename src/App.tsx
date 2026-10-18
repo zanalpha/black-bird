@@ -28,7 +28,7 @@ function BookGate() {
             Membuka buku kas
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Mengambil transaksi yang tersimpan di tautan ini.
+            Mengambil buku kas bersama.
           </p>
         </div>
       </div>
@@ -45,12 +45,12 @@ function BookGate() {
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">{loadError}</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            Data lama tidak diubah sampai kamu memulai buku kas baru.
+            Buku bersama tidak diubah sampai kamu memulai buku kas baru.
           </p>
           {confirm ? (
             <div className="mt-6 grid gap-3">
               <p className="text-sm">
-                Data lama yang tidak terbaca akan ditimpa di perangkat ini.
+                Buku bersama yang tidak terbaca akan diganti dengan buku kosong.
               </p>
               <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
                 <Button

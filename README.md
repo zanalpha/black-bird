@@ -41,6 +41,8 @@ Blueprint ada di `render.yaml`: situs statis, perintah build `npm ci && npm run 
 
 ## Data
 
-Transaksi tersimpan di browser (`blackbird.transactions.v1`) dan disalin ke buku bersama, jadi perangkat lain yang membuka tautan yang sama melihat transaksi yang sama. Preferensi tampilan tetap di perangkat masing-masing, kunci `blackbird.preferences.v1`.
+Transaksi disimpan di satu buku bersama, bukan di tiap perangkat. HP dan laptop yang membuka tautan yang sama melihat catatan yang sama, biasanya dalam beberapa detik. Salinan buku juga ada di [zanalpha/black-bird-book](https://github.com/zanalpha/black-bird-book), berkas `ledger.json`.
 
-Buka dulu tautan di perangkat yang sudah berisi catatan, supaya catatan itu terunggah. Setelah itu perangkat lain menampilkan buku yang sama. Siapa pun yang membuka tautan itu dapat melihat transaksi di dalamnya.
+Preferensi tampilan tetap di perangkat masing-masing, kunci `blackbird.preferences.v1`.
+
+Siapa pun yang membuka tautan itu dapat melihat dan mengubah transaksi di dalamnya.
