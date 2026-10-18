@@ -29,6 +29,12 @@ npm run lint
 
 Nominal memakai rupiah penuh tanpa sen. Penghapusan selalu minta konfirmasi.
 
+## Tautan GitHub Pages
+
+Situs publiknya ada di [https://zanalpha.github.io/black-bird/](https://zanalpha.github.io/black-bird/).
+
+Setiap dorongan ke branch `main` di GitHub menjalankan `.github/workflows/pages.yml`: menginstal, membangun folder `dist`, lalu menerbitkannya lewat GitHub Pages. Aset memakai path relatif, jadi tautan proyek itu tetap benar.
+
 ## Deploy ke Render
 
 Blueprint ada di `render.yaml`: situs statis, perintah build `npm ci && npm run build`, folder publik `dist`, Node 22. Buat Static Site atau Blueprint baru di Render dari repositori GitHub atau GitLab, lalu pakai file itu.
