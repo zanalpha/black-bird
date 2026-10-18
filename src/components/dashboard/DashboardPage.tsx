@@ -1,8 +1,8 @@
 import { useState } from 'react'
+import { BalanceHero } from '@/components/ledger/BalanceHero'
 import { EmptyState } from '@/components/ledger/EmptyState'
 import { MonthlyChart } from '@/components/ledger/MonthlyChart'
 import { MonthSwitcher } from '@/components/ledger/MonthSwitcher'
-import { StatCard } from '@/components/ledger/StatCard'
 import { TransactionList } from '@/components/ledger/TransactionList'
 import { useLedgerUi } from '@/context/LedgerUiContext'
 import { useAdaptiveView } from '@/lib/viewport'
@@ -26,6 +26,7 @@ export function DashboardPage() {
   const [month, setMonth] = useState(currentMonthKey)
   const monthItems = transactionsInMonth(transactions, month)
   const summary = totals(monthItems)
+  const book = totals(transactions)
   const previous = totals(
     transactionsInMonth(transactions, shiftMonth(month, -1)),
   )
@@ -43,6 +44,25 @@ export function DashboardPage() {
         <MonthSwitcher value={month} onChange={setMonth} />
       </header>
 
+      <BalanceHero
+        label={`Saldo ${formatMonthLabel(month)}`}
+        amount={summary.balance}
+        detail={
+          previous.count > 0
+            ? balanceDelta(
+                summary.balance,
+                previous.balance,
+                formatMonthLabel(shiftMonth(month, -1)),
+              )
+            : summary.count === 0
+              ? 'Belum ada transaksi di bulan ini.'
+              : countLabel(summary.count)
+        }
+        income={summary.income}
+        expense={summary.expense}
+        overall={transactions.length > 0 ? book.balance : undefined}
+      />
+
       {transactions.length === 0 ? (
         <EmptyState
           title="Buku kas masih kosong"
@@ -52,44 +72,6 @@ export function DashboardPage() {
         />
       ) : (
         <>
-          <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            <StatCard
-              label="Pemasukan"
-              value={formatRupiah(summary.income)}
-              detail={countLabel(
-                monthItems.filter((tx) => tx.type === 'pemasukan').length,
-              )}
-            />
-            <StatCard
-              label="Pengeluaran"
-              value={formatRupiah(summary.expense)}
-              detail={
-                summary.income > 0
-                  ? `${Math.round((summary.expense / summary.income) * 100)}% dari pemasukan`
-                  : countLabel(
-                      monthItems.filter((tx) => tx.type === 'pengeluaran').length,
-                    )
-              }
-            />
-            <StatCard
-              className="sm:col-span-2 xl:col-span-1"
-              tone="inverse"
-              label="Saldo"
-              value={formatRupiah(summary.balance)}
-              detail={countLabel(summary.count)}
-            />
-          </section>
-
-          {previous.count > 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {balanceDelta(
-                summary.balance,
-                previous.balance,
-                formatMonthLabel(shiftMonth(month, -1)),
-              )}
-            </p>
-          ) : null}
-
           <MonthlyChart
             transactions={transactions}
             month={month}

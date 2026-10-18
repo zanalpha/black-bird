@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Download } from 'lucide-react'
 import { toast } from 'sonner'
+import { BalanceHero } from '@/components/ledger/BalanceHero'
 import { MonthSwitcher } from '@/components/ledger/MonthSwitcher'
-import { StatCard } from '@/components/ledger/StatCard'
 import { TransactionList } from '@/components/ledger/TransactionList'
 import { Button } from '@/components/ui/button'
 import { useFinance } from '@/context/FinanceContext'
@@ -18,6 +18,7 @@ export function ReportPage() {
   const [month, setMonth] = useState(currentMonthKey)
   const monthItems = transactionsInMonth(transactions, month)
   const summary = totals(monthItems)
+  const book = totals(transactions)
   const incomeCategories = byCategory(monthItems, 'pemasukan')
   const expenseCategories = byCategory(monthItems, 'pengeluaran')
 
@@ -54,29 +55,18 @@ export function ReportPage() {
         </div>
       </header>
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        <StatCard
-          label="Pemasukan"
-          value={formatRupiah(summary.income)}
-          detail={`${incomeCategories.length} kategori`}
-        />
-        <StatCard
-          label="Pengeluaran"
-          value={formatRupiah(summary.expense)}
-          detail={`${expenseCategories.length} kategori`}
-        />
-        <StatCard
-          className="sm:col-span-2 xl:col-span-1"
-          tone="inverse"
-          label="Saldo"
-          value={formatRupiah(summary.balance)}
-          detail={
-            summary.count === 0
-              ? 'Belum ada transaksi'
-              : `${summary.count} transaksi`
-          }
-        />
-      </section>
+      <BalanceHero
+        label={`Saldo ${formatMonthLabel(month)}`}
+        amount={summary.balance}
+        detail={
+          summary.count === 0
+            ? 'Belum ada transaksi di bulan ini.'
+            : `${summary.count} transaksi`
+        }
+        income={summary.income}
+        expense={summary.expense}
+        overall={transactions.length > 0 ? book.balance : undefined}
+      />
 
       <section className="grid gap-3 lg:grid-cols-2">
         <CategoryCard

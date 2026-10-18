@@ -18,6 +18,8 @@ import { TransactionPage } from '@/components/transactions/TransactionPage'
 import { LedgerUiProvider, useLedgerUi } from '@/context/LedgerUiContext'
 import { useFinance } from '@/context/FinanceContext'
 import { usePreferences } from '@/context/PreferencesContext'
+import { totals } from '@/lib/finance'
+import { formatRupiah } from '@/lib/money'
 import { cn } from '@/lib/utils'
 
 type Page = 'dasbor' | 'transaksi' | 'laporan' | 'pengaturan'
@@ -54,7 +56,9 @@ export function AppShell() {
 
 function Shell() {
   const [page, setPage] = useState<Page>(readPage)
-  const { saveError, syncError, notice, dismissNotice, retrySave } = useFinance()
+  const { transactions, saveError, syncError, notice, dismissNotice, retrySave } =
+    useFinance()
+  const balance = totals(transactions).balance
   const { preferences, setTheme } = usePreferences()
   const { openCreate } = useLedgerUi()
 
@@ -94,6 +98,7 @@ function Shell() {
           ))}
         </nav>
         <div className="mt-auto grid gap-3 p-3">
+          <BalanceReadout balance={balance} />
           <p className="px-2 text-xs text-muted-foreground">
             {syncError
               ? 'Perangkat lain belum mendapat perubahan terakhir.'
@@ -114,7 +119,8 @@ function Shell() {
       </aside>
 
       <div className="min-w-0">
-        <header className="sticky top-0 z-40 flex items-center justify-between gap-3 border-b border-border bg-background/95 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 backdrop-blur lg:hidden">
+        <header className="sticky top-0 z-40 border-b border-border bg-background/95 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 backdrop-blur lg:hidden">
+          <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2">
             <BirdMark />
             <span className="truncate font-semibold">Black Bird</span>
@@ -140,6 +146,8 @@ function Shell() {
               <span className="max-[380px]:sr-only">Catat</span>
             </Button>
           </div>
+          </div>
+          <BalanceReadout balance={balance} compact className="mt-3" />
         </header>
 
         <main
@@ -249,6 +257,41 @@ function NavLink({
       <Icon className={cn(compact ? 'size-5' : 'size-4', active && compact && 'text-primary')} />
       {item.label}
     </a>
+  )
+}
+
+function BalanceReadout({
+  balance,
+  compact = false,
+  className,
+}: {
+  balance: number
+  compact?: boolean
+  className?: string
+}) {
+  const negative = balance < 0
+  return (
+    <div
+      className={cn(
+        'rounded-2xl px-3 py-3',
+        negative
+          ? 'bg-[#3f1515] text-[#fff6f6]'
+          : 'bg-primary text-primary-foreground',
+        className,
+      )}
+    >
+      <p className="text-xs font-medium tracking-wide opacity-75">
+        {compact ? 'Saldo keseluruhan' : 'Saldo'}
+      </p>
+      <p
+        className={cn(
+          'mt-1 font-semibold tracking-tight break-words tabular-nums',
+          compact ? 'text-3xl leading-none' : 'text-2xl leading-tight',
+        )}
+      >
+        {formatRupiah(balance)}
+      </p>
+    </div>
   )
 }
 

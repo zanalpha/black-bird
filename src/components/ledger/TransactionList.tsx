@@ -1,4 +1,5 @@
 import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useLedgerUi } from '@/context/LedgerUiContext'
 import { formatDateLong } from '@/lib/dates'
@@ -35,7 +36,12 @@ function CardList({ items }: { items: Transaction[] }) {
             <Badge variant={tx.type === 'pemasukan' ? 'default' : 'secondary'}>
               {typeLabel(tx.type)}
             </Badge>
-            <p className="shrink-0 text-right text-sm font-semibold tabular-nums sm:text-base">
+            <p
+              className={cn(
+                'shrink-0 text-right text-base font-semibold tabular-nums sm:text-lg',
+                tx.type === 'pemasukan' ? 'text-primary' : 'text-foreground',
+              )}
+            >
               {formatSignedRupiah(tx.type, tx.amount)}
             </p>
           </div>
@@ -118,7 +124,12 @@ function TableList({ items }: { items: Transaction[] }) {
               <td className="max-w-xs px-4 py-3 text-muted-foreground">
                 <span className="line-clamp-2">{tx.note || '—'}</span>
               </td>
-              <td className="px-4 py-3 text-right font-semibold whitespace-nowrap tabular-nums">
+              <td
+                className={cn(
+                  'px-4 py-3 text-right text-base font-semibold whitespace-nowrap tabular-nums',
+                  tx.type === 'pemasukan' ? 'text-primary' : 'text-foreground',
+                )}
+              >
                 {formatSignedRupiah(tx.type, tx.amount)}
               </td>
               <td className="px-4 py-3">
